@@ -90,11 +90,11 @@ git commit -m "feat: add weekly-report skill"
 
 ### 前置条件
 
-需要先安装并启动 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)：
+需要先安装并启动 [Claude Code](https://code.claude.com/docs/en/overview)：
 
 ```bash
 # 安装 Claude Code
-npm install -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 
 # 在任意 Git 项目目录中启动
 claude
@@ -111,15 +111,18 @@ claude
 ### 执行流程
 
 1. **选择时间范围**
+
    - 本周
    - 上周
    - 自定义（输入周一日期）
 
 2. **选择仓库**（如已配置多仓库）
+
    - 显示已配置的仓库列表
    - 可多选要包含的仓库
 
 3. **添加补充内容**（可选）
+
    - 输入额外的工作内容
 
 4. **生成周报**
@@ -152,28 +155,32 @@ claude
 # 周报 (2026-01-06 ~ 2026-01-12)
 
 project-frontend
-  - 构建工具升级改造
-  - 核心功能开发流程跟进
-    - 方案合理性优化
-  - 脚本国际化优化
+
+- 构建工具升级改造
+- 核心功能开发流程跟进
+  - 方案合理性优化
+- 脚本国际化优化
 
 project-backend
-  - 自定义类型化消息渲染
-  - 断线重连流程梳理
+
+- 自定义类型化消息渲染
+- 断线重连流程梳理
 
 其他
-  - 新版国际化方案讨论
+
+- 新版国际化方案讨论
 ```
 
 ## 系统要求
 
-| 操作系统 | 要求 |
-|---------|------|
-| macOS | 10.15+ (Catalina 或更高) |
-| Linux | 任意现代发行版 (Ubuntu 18.04+, CentOS 7+, etc.) |
-| Windows | Windows 10/11 + PowerShell 5.1+ |
+| 操作系统 | 要求                                            |
+| -------- | ----------------------------------------------- |
+| macOS    | 10.15+ (Catalina 或更高)                        |
+| Linux    | 任意现代发行版 (Ubuntu 18.04+, CentOS 7+, etc.) |
+| Windows  | Windows 10/11 + PowerShell 5.1+                 |
 
 **依赖:**
+
 - Git 2.0+
 - Claude Code CLI
 
@@ -244,6 +251,7 @@ make publish
 ```
 
 选择后自动完成：
+
 1. 更新版本号
 2. 提交并创建 Git tag
 3. 构建发布包
