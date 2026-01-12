@@ -16,29 +16,65 @@ Claude Code Skill - 自动读取 Git 提交记录生成周报
 
 ## 安装
 
-### 方式一：一键安装
+### 方式一：一键安装（推荐）
+
+**macOS / Linux:**
 
 ```bash
-# 克隆仓库
-git clone https://github.com/your-username/weekly-flow.git
-cd weekly-flow
+curl -fsSL https://raw.githubusercontent.com/adonis/weekly-flow/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/adonis/weekly-flow/main/install.ps1 | iex
+```
+
+### 方式二：下载发布包安装
+
+从 [Releases](https://github.com/adonis/weekly-flow/releases) 页面下载最新版本。
+
+**macOS / Linux:**
+
+```bash
+# 下载并解压
+curl -LO https://github.com/adonis/weekly-flow/releases/latest/download/weekly-flow-v1.0.0.tar.gz
+tar -xzf weekly-flow-v1.0.0.tar.gz
+cd weekly-flow-v1.0.0
 
 # 运行安装脚本
-chmod +x install.sh
 ./install.sh
 ```
 
-### 方式二：手动安装
+**Windows:**
+
+1. 下载 `weekly-flow-v1.0.0.zip`
+2. 解压到任意目录
+3. 在 PowerShell 中运行：`.\install.ps1`
+
+### 方式三：克隆仓库安装
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/weekly-flow.git
+git clone https://github.com/adonis/weekly-flow.git
+cd weekly-flow
+
+# 运行安装脚本
+./install.sh           # macOS/Linux
+.\install.ps1          # Windows PowerShell
+```
+
+### 方式四：手动安装
+
+```bash
+# 克隆仓库
+git clone https://github.com/adonis/weekly-flow.git
 
 # 复制到 Claude Code skills 目录
 cp -r weekly-flow ~/.claude/skills/weekly-report
 ```
 
-### 方式三：项目级安装（团队共享）
+### 方式五：项目级安装（团队共享）
 
 ```bash
 # 在项目根目录创建
@@ -115,6 +151,18 @@ project-backend
   - 新版国际化方案讨论
 ```
 
+## 系统要求
+
+| 操作系统 | 要求 |
+|---------|------|
+| macOS | 10.15+ (Catalina 或更高) |
+| Linux | 任意现代发行版 (Ubuntu 18.04+, CentOS 7+, etc.) |
+| Windows | Windows 10/11 + PowerShell 5.1+ |
+
+**依赖:**
+- Git 2.0+
+- Claude Code CLI
+
 ## 开发
 
 ### 安装开发依赖
@@ -125,20 +173,67 @@ uv pip install -e ".[dev]"
 
 # 或使用 pip
 pip install -e ".[dev]"
+
+# 或使用 make
+make install-dev
 ```
 
 ### 运行测试
 
 ```bash
 # 运行所有测试
-uv run pytest tests/ -v
-
-# 运行特定模块测试
-uv run pytest tests/test_git_analyzer.py -v
+make test
 
 # 查看覆盖率
-uv run pytest tests/ --cov=src --cov-report=html
+make coverage
 ```
+
+### 构建发布包
+
+```bash
+# 构建 tar.gz 和 zip 包
+make build
+
+# 发布文件位于 dist/ 目录
+```
+
+### 一键发布
+
+需要先安装并登录 [GitHub CLI](https://cli.github.com/)：
+
+```bash
+# 安装 gh (macOS)
+brew install gh
+
+# 登录
+gh auth login
+```
+
+然后执行一键发布：
+
+```bash
+make publish
+```
+
+会显示交互式菜单，选择版本类型：
+
+```
+当前版本: v1.0.0
+
+请选择版本更新类型:
+
+  1) patch  - 补丁版本 (bug 修复)        -> v1.0.1
+  2) minor  - 次要版本 (新功能，向后兼容) -> v1.1.0
+  3) major  - 主要版本 (重大变更)        -> v2.0.0
+  4) custom - 自定义版本号
+  5) cancel - 取消发布
+```
+
+选择后自动完成：
+- 更新版本号
+- 提交并创建 Git tag
+- 构建发布包
+- 创建 GitHub Release 并上传文件
 
 ### 项目结构
 
@@ -153,9 +248,36 @@ weekly-flow/
 │   ├── report_generator.py     # 周报生成
 │   ├── config_manager.py       # 配置管理
 │   └── storage.py              # 存储管理
+├── scripts/                    # 脚本目录
+│   ├── build-release.sh        # 构建发布包脚本
+│   └── release.sh              # 一键发布脚本
 ├── tests/                      # 测试目录
-├── install.sh                  # 安装脚本
+├── install.sh                  # macOS/Linux 安装脚本
+├── install.ps1                 # Windows 安装脚本
+├── Makefile                    # 开发命令
 └── README.md                   # 使用文档
+```
+
+## 更新
+
+重新运行安装脚本即可更新：
+
+```bash
+# 一键更新
+curl -fsSL https://raw.githubusercontent.com/adonis/weekly-flow/main/install.sh | bash
+
+# 或使用 --force 参数强制覆盖
+./install.sh --force
+```
+
+## 卸载
+
+```bash
+# 删除 Skill
+rm -rf ~/.claude/skills/weekly-report
+
+# 删除配置和周报（可选）
+rm -rf ~/.weekly-reports
 ```
 
 ## 许可证
