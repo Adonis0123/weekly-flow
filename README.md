@@ -199,7 +199,7 @@ make build
 
 ### 一键发布
 
-如果需要自动创建 GitHub Release 并上传构建产物，需要先安装并登录 [GitHub CLI](https://cli.github.com/)：
+确保已安装并登录 [GitHub CLI](https://cli.github.com/)：
 
 ```bash
 # 安装 gh (macOS)
@@ -209,13 +209,13 @@ brew install gh
 gh auth login
 ```
 
-然后执行一键发布：
+执行一键发布：
 
 ```bash
 make publish
 ```
 
-会显示交互式菜单，选择版本类型：
+会显示交互式菜单：
 
 ```
 当前版本: v1.0.0
@@ -230,10 +230,10 @@ make publish
 ```
 
 选择后自动完成：
-- 更新版本号
-- 提交并创建 Git tag
-- 构建发布包
-- 创建 GitHub Release 并上传文件
+1. 更新版本号
+2. 提交并创建 Git tag
+3. 构建发布包
+4. 推送 tag（GitHub Actions 会自动创建 Release）
 
 ### 项目结构
 
