@@ -99,13 +99,15 @@ git commit -m "feat: add weekly-report skill"
 ## 输出示例
 
 ```markdown
-ai-video-collection
-  - turbopack 升级改造
-  - Agent 开发流程跟进
-    - 方案合理性优化
-  - 油猴脚本国际化优化
+# 周报 (2026-01-06 ~ 2026-01-12)
 
-bandy-ai
+project-frontend
+  - 构建工具升级改造
+  - 核心功能开发流程跟进
+    - 方案合理性优化
+  - 脚本国际化优化
+
+project-backend
   - 自定义类型化消息渲染
   - 断线重连流程梳理
 

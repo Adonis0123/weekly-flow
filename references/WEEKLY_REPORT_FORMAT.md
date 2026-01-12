@@ -58,14 +58,14 @@
 ### 示例 1
 
 ```
-ai-video-collection
-  - turbopack 升级改造及问题排查
-  - Agent 开发流程跟进
-    - 水合异常处理
+project-frontend
+  - 构建工具升级改造及问题排查
+  - 核心功能开发流程跟进
+    - 异常处理优化
     - 方案合理性优化
     - 问题边界定义
-  - Agent 对话头像渲染
-  - 油猴脚本国际化检查优化
+  - 对话头像渲染
+  - 脚本国际化检查优化
 
 其他
   - 新版国际化方案讨论
@@ -74,34 +74,34 @@ ai-video-collection
 ### 示例 2
 
 ```
-bandy.ai
+project-backend
   - 自定义类型化流式消息渲染
   - 异常状态调试优化
     - 支持 debug 模式
     - 原始消息结构查看
   - device id 修复及有效期处理
-  - agent 断线重连流程梳理
+  - 断线重连流程梳理
 
 其他
-  - 全局推广弹窗缺陷修复
+  - 全局弹窗缺陷修复
 ```
 
 ### 示例 3
 
 ```
-ai-video-collection
+project-frontend
   - 前后端分离方案跟进
-    - 拆分 Next.js 服务（web/admin/server）
+    - 拆分服务（web/admin/server）
     - 统一转发代理消除跨域
   - 活动页需求设计
     - 支持免发版管理
     - SDK 方案调通
   - SEO 预渲染方案
 
-bandy.ai
+project-backend
   - 断线重连方案实现
     - 自动重试失败后提示刷新
-  - antd 升级尝试
+  - 依赖库升级尝试
 
 其他
   - 多媒体资源运营管理方案讨论
