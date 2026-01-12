@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weekly-flow"
+version = "1.0.0"
+description = "Claude Code Skill - 自动读取 Git 提交记录生成周报，支持多仓库汇总和智能过滤"
+readme = "README.md"
+license.text = "MIT"
+requires-python = ">=3.9"
+authors = [
+    {name = "adonis", email = "adonis@example.com"}
+]
+maintainers = [
+    {name = "adonis", email = "adonis@example.com"}
+]
+keywords = ["git", "weekly-report", "claude-code", "skill", "automation", "commit-analyzer"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+dependencies = [
+    "jinja2>=3.0.0",
+    "gitpython>=3.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/adonis/weekly-flow"
+Repository = "https://github.com/adonis/weekly-flow"
+Issues = "https://github.com/adonis/weekly-flow/issues"
+Documentation = "https://github.com/adonis/weekly-flow/blob/main/README.md"
+Changelog = "https://github.com/adonis/weekly-flow/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
