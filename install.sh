@@ -16,6 +16,10 @@ NC='\033[0m' # No Color
 
 # 默认选项
 FORCE=false
+REPO="Adonis0123/weekly-flow"
+BRANCH="main"
+TMP_DIR=""
+PAYLOAD_DIR=""
 
 # 打印带颜色的消息
 info() {
@@ -41,6 +45,8 @@ show_help() {
     echo ""
     echo "选项:"
     echo "  -f, --force    强制覆盖已存在的安装"
+    echo "      --repo     指定 GitHub 仓库 (默认: Adonis0123/weekly-flow)"
+    echo "      --branch   指定分支 (默认: main)"
     echo "  -h, --help     显示帮助信息"
     echo "  -v, --version  显示版本信息"
     echo ""
@@ -48,6 +54,7 @@ show_help() {
     echo "  ./install.sh           # 正常安装"
     echo "  ./install.sh --force   # 强制覆盖安装"
     echo "  curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash"
+    echo "  curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash -s -- --force"
     echo ""
     exit 0
 }
@@ -65,6 +72,14 @@ parse_args() {
             -f|--force)
                 FORCE=true
                 shift
+                ;;
+            --repo)
+                REPO="$2"
+                shift 2
+                ;;
+            --branch)
+                BRANCH="$2"
+                shift 2
                 ;;
             -h|--help)
                 show_help
@@ -102,6 +117,59 @@ check_dependencies() {
     info "依赖检查通过"
 }
 
+cleanup_tmp() {
+    if [ -n "$TMP_DIR" ] && [ -d "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR" 2>/dev/null || true
+    fi
+}
+
+download_payload() {
+    if command -v curl &> /dev/null; then
+        curl -fsSL -L "$1" -o "$2"
+    elif command -v wget &> /dev/null; then
+        wget -qO "$2" "$1"
+    else
+        error "缺少下载工具：请安装 curl 或 wget"
+    fi
+}
+
+prepare_payload_dir() {
+    local script_dir
+    script_dir="$(get_script_dir)"
+
+    if [ -f "$script_dir/SKILL.md" ] && [ -d "$script_dir/src" ] && [ -d "$script_dir/references" ]; then
+        PAYLOAD_DIR="$script_dir"
+        return 0
+    fi
+
+    info "未检测到本地发布包文件，准备从 GitHub 下载源码 (${REPO}@${BRANCH})..."
+
+    if ! command -v tar &> /dev/null; then
+        error "缺少 tar 命令，无法解压下载包"
+    fi
+
+    TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t weekly-flow)"
+    trap cleanup_tmp EXIT
+
+    local archive_url="https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz"
+    local archive_path="${TMP_DIR}/weekly-flow.tar.gz"
+
+    download_payload "$archive_url" "$archive_path"
+    tar -xzf "$archive_path" -C "$TMP_DIR"
+
+    local extracted_dir
+    extracted_dir="$(find "$TMP_DIR" -maxdepth 1 -type d -name "weekly-flow-*" | head -1)"
+    if [ -z "$extracted_dir" ] || [ ! -d "$extracted_dir" ]; then
+        error "下载解压失败：未找到源码目录"
+    fi
+
+    if [ ! -f "$extracted_dir/SKILL.md" ]; then
+        error "下载内容异常：未找到 SKILL.md"
+    fi
+
+    PAYLOAD_DIR="$extracted_dir"
+}
+
 # 获取脚本所在目录
 get_script_dir() {
     SOURCE="${BASH_SOURCE[0]}"
@@ -115,7 +183,8 @@ get_script_dir() {
 
 # 安装到 Claude Code skills 目录
 install_skill() {
-    local SCRIPT_DIR=$(get_script_dir)
+    prepare_payload_dir
+    local SCRIPT_DIR="$PAYLOAD_DIR"
     local SKILL_DIR="$HOME/.claude/skills/weekly-report"
 
     info "安装 Weekly Flow Skill..."
@@ -130,7 +199,7 @@ install_skill() {
             rm -rf "$SKILL_DIR"
         else
             warn "Skill 已存在: $SKILL_DIR"
-            read -p "是否覆盖? (y/n) " -n 1 -r
+            read -r -p "是否覆盖? (y/N) " -n 1
             echo
             if [[ ! $REPLY =~ ^[Yy]$ ]]; then
                 info "取消安装"

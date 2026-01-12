@@ -3,7 +3,9 @@
 
 param(
     [switch]$Force,
-    [switch]$Help
+    [switch]$Help,
+    [string]$Repo = "Adonis0123/weekly-flow",
+    [string]$Branch = "main"
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,10 +42,14 @@ Weekly Flow - Claude Code Skill 安装器 (Windows)
 选项:
     -Force    强制覆盖已存在的安装
     -Help     显示帮助信息
+    -Repo     指定 GitHub 仓库 (默认: Adonis0123/weekly-flow)
+    -Branch   指定分支 (默认: main)
 
 示例:
     .\install.ps1           # 正常安装
     .\install.ps1 -Force    # 强制覆盖安装
+    # 一键安装（如需强制覆盖，可先设置环境变量）
+    # $env:WEEKLY_FLOW_FORCE=1; irm https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.ps1 | iex
 
 "@
     exit 0
@@ -67,12 +73,63 @@ function Get-ScriptDirectory {
     return Split-Path -Parent $MyInvocation.ScriptName
 }
 
+function Get-PayloadDirectory {
+    param(
+        [string]$Repo,
+        [string]$Branch
+    )
+
+    $scriptDir = $PSScriptRoot
+    if (-not $scriptDir) {
+        $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+    }
+
+    if ($scriptDir -and (Test-Path (Join-Path $scriptDir "SKILL.md"))) {
+        return @{
+            PayloadDir = $scriptDir
+            TempDir = $null
+        }
+    }
+
+    Write-Info "未检测到本地发布包文件，准备从 GitHub 下载源码 ($Repo@$Branch)..."
+
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("weekly-flow-" + [System.Guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+
+    $zipPath = Join-Path $tempDir "weekly-flow.zip"
+    $zipUrl = "https://github.com/$Repo/archive/refs/heads/$Branch.zip"
+
+    try {
+        Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing | Out-Null
+    } catch {
+        Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
+        Write-Err "下载失败：$zipUrl"
+    }
+
+    Expand-Archive -Path $zipPath -DestinationPath $tempDir -Force
+
+    $extracted = Get-ChildItem -Path $tempDir -Directory | Where-Object { $_.Name -like "weekly-flow-*" } | Select-Object -First 1
+    if (-not $extracted) {
+        Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
+        Write-Err "解压失败：未找到源码目录"
+    }
+
+    if (-not (Test-Path (Join-Path $extracted.FullName "SKILL.md"))) {
+        Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
+        Write-Err "下载内容异常：未找到 SKILL.md"
+    }
+
+    return @{
+        PayloadDir = $extracted.FullName
+        TempDir = $tempDir
+    }
+}
+
 # 安装 Skill
 function Install-Skill {
-    $ScriptDir = $PSScriptRoot
-    if (-not $ScriptDir) {
-        $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-    }
+    $payload = Get-PayloadDirectory -Repo $Repo -Branch $Branch
+    $ScriptDir = $payload.PayloadDir
+    $TempDir = $payload.TempDir
 
     $SkillDir = Join-Path $env:USERPROFILE ".claude\skills\weekly-report"
 
@@ -91,7 +148,7 @@ function Install-Skill {
             Remove-Item -Recurse -Force $SkillDir
         } else {
             Write-Warn "Skill 已存在: $SkillDir"
-            $response = Read-Host "是否覆盖? (y/n)"
+            $response = Read-Host "是否覆盖? (y/N)"
             if ($response -notmatch '^[Yy]') {
                 Write-Info "取消安装"
                 exit 0
@@ -100,15 +157,21 @@ function Install-Skill {
         }
     }
 
-    # 复制文件
-    New-Item -ItemType Directory -Path $SkillDir -Force | Out-Null
+    try {
+        # 复制文件
+        New-Item -ItemType Directory -Path $SkillDir -Force | Out-Null
 
-    Copy-Item -Path (Join-Path $ScriptDir "SKILL.md") -Destination $SkillDir
-    Copy-Item -Path (Join-Path $ScriptDir "references") -Destination $SkillDir -Recurse
-    Copy-Item -Path (Join-Path $ScriptDir "src") -Destination $SkillDir -Recurse
+        Copy-Item -Path (Join-Path $ScriptDir "SKILL.md") -Destination $SkillDir -Force
+        Copy-Item -Path (Join-Path $ScriptDir "references") -Destination $SkillDir -Recurse -Force
+        Copy-Item -Path (Join-Path $ScriptDir "src") -Destination $SkillDir -Recurse -Force
 
-    if (Test-Path (Join-Path $ScriptDir "scripts")) {
-        Copy-Item -Path (Join-Path $ScriptDir "scripts") -Destination $SkillDir -Recurse
+        if (Test-Path (Join-Path $ScriptDir "scripts")) {
+            Copy-Item -Path (Join-Path $ScriptDir "scripts") -Destination $SkillDir -Recurse -Force
+        }
+    } finally {
+        if ($TempDir -and (Test-Path $TempDir)) {
+            Remove-Item -Recurse -Force $TempDir -ErrorAction SilentlyContinue
+        }
     }
 
     Write-Info "Skill 安装完成: $SkillDir"
@@ -161,6 +224,16 @@ function Show-Usage {
 function Main {
     if ($Help) {
         Show-Help
+    }
+
+    if (-not $Force -and $env:WEEKLY_FLOW_FORCE -match '^(1|true|yes|y)$') {
+        $Force = $true
+    }
+    if ($env:WEEKLY_FLOW_REPO) {
+        $Repo = $env:WEEKLY_FLOW_REPO
+    }
+    if ($env:WEEKLY_FLOW_BRANCH) {
+        $Branch = $env:WEEKLY_FLOW_BRANCH
     }
 
     Write-Host "=========================================="
