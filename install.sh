@@ -15,7 +15,6 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 默认选项
-FORCE=false
 REPO="Adonis0123/weekly-flow"
 BRANCH="main"
 TMP_DIR=""
@@ -44,17 +43,14 @@ show_help() {
     echo "  ./install.sh [选项]"
     echo ""
     echo "选项:"
-    echo "  -f, --force    强制覆盖已存在的安装"
     echo "      --repo     指定 GitHub 仓库 (默认: Adonis0123/weekly-flow)"
     echo "      --branch   指定分支 (默认: main)"
     echo "  -h, --help     显示帮助信息"
     echo "  -v, --version  显示版本信息"
     echo ""
     echo "示例:"
-    echo "  ./install.sh           # 正常安装"
-    echo "  ./install.sh --force   # 强制覆盖安装"
+    echo "  ./install.sh    # 全量覆盖安装"
     echo "  curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash"
-    echo "  curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash -s -- --force"
     echo ""
     exit 0
 }
@@ -69,10 +65,6 @@ show_version() {
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -f|--force)
-                FORCE=true
-                shift
-                ;;
             --repo)
                 REPO="$2"
                 shift 2
@@ -192,21 +184,10 @@ install_skill() {
     # 创建目标目录
     mkdir -p "$HOME/.claude/skills"
 
-    # 如果已存在，根据 FORCE 参数处理
+    # 如果已存在，直接覆盖
     if [ -d "$SKILL_DIR" ]; then
-        if [ "$FORCE" = true ]; then
-            warn "强制覆盖已存在的 Skill: $SKILL_DIR"
-            rm -rf "$SKILL_DIR"
-        else
-            warn "Skill 已存在: $SKILL_DIR"
-            read -r -p "是否覆盖? (y/N) " -n 1
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                info "取消安装"
-                exit 0
-            fi
-            rm -rf "$SKILL_DIR"
-        fi
+        info "覆盖已存在的 Skill: $SKILL_DIR"
+        rm -rf "$SKILL_DIR"
     fi
 
     # 复制文件

@@ -22,16 +22,12 @@ Claude Code Skill - 自动读取 Git 提交记录生成周报
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash
-# 强制覆盖已存在安装:
-curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash -s -- --force
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
 irm https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.ps1 | iex
-# 强制覆盖已存在安装:
-$env:WEEKLY_FLOW_FORCE=1; irm https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.ps1 | iex
 ```
 
 ### 方式二：下载发布包安装
@@ -264,14 +260,10 @@ weekly-flow/
 
 ## 更新
 
-重新运行安装脚本即可更新：
+重新运行安装脚本即可更新（默认会全量覆盖）：
 
 ```bash
-# 一键更新
 curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash
-
-# 或使用 --force 参数强制覆盖
-./install.sh --force
 ```
 
 ## 卸载

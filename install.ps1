@@ -2,7 +2,6 @@
 # PowerShell 脚本
 
 param(
-    [switch]$Force,
     [switch]$Help,
     [string]$Repo = "Adonis0123/weekly-flow",
     [string]$Branch = "main"
@@ -40,16 +39,13 @@ Weekly Flow - Claude Code Skill 安装器 (Windows)
     .\install.ps1 [选项]
 
 选项:
-    -Force    强制覆盖已存在的安装
     -Help     显示帮助信息
     -Repo     指定 GitHub 仓库 (默认: Adonis0123/weekly-flow)
     -Branch   指定分支 (默认: main)
 
 示例:
-    .\install.ps1           # 正常安装
-    .\install.ps1 -Force    # 强制覆盖安装
-    # 一键安装（如需强制覆盖，可先设置环境变量）
-    # $env:WEEKLY_FLOW_FORCE=1; irm https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.ps1 | iex
+    .\install.ps1    # 全量覆盖安装
+    irm https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.ps1 | iex
 
 "@
     exit 0
@@ -141,20 +137,10 @@ function Install-Skill {
         New-Item -ItemType Directory -Path $ClaudeSkillsDir -Force | Out-Null
     }
 
-    # 检查是否已存在
+    # 如果已存在，直接覆盖
     if (Test-Path $SkillDir) {
-        if ($Force) {
-            Write-Warn "强制覆盖已存在的 Skill: $SkillDir"
-            Remove-Item -Recurse -Force $SkillDir
-        } else {
-            Write-Warn "Skill 已存在: $SkillDir"
-            $response = Read-Host "是否覆盖? (y/N)"
-            if ($response -notmatch '^[Yy]') {
-                Write-Info "取消安装"
-                exit 0
-            }
-            Remove-Item -Recurse -Force $SkillDir
-        }
+        Write-Info "覆盖已存在的 Skill: $SkillDir"
+        Remove-Item -Recurse -Force $SkillDir
     }
 
     try {
@@ -226,9 +212,6 @@ function Main {
         Show-Help
     }
 
-    if (-not $Force -and $env:WEEKLY_FLOW_FORCE -match '^(1|true|yes|y)$') {
-        $Force = $true
-    }
     if ($env:WEEKLY_FLOW_REPO) {
         $Repo = $env:WEEKLY_FLOW_REPO
     }
