@@ -477,29 +477,24 @@ main() {
     # 提交 + tag + push（不依赖 gh）
     commit_tag_and_push "$new_version"
 
-    # GitHub Release（可选）
+    # GitHub Release（根据是否有工作流决定）
     echo ""
-    local create_with_gh="n"
-    if gh_is_available; then
-        if has_release_workflow; then
-            warn "检测到 GitHub Actions Release 工作流：push tag 后会自动创建 Release"
-            read -r -p "仍然在本地用 gh 创建 Release 并上传 dist/? (y/N): " create_with_gh
-            create_with_gh=${create_with_gh:-n}
-        else
-            read -r -p "使用 gh 创建 GitHub Release 并上传 dist/? (Y/n): " create_with_gh
-            create_with_gh=${create_with_gh:-y}
+    if has_release_workflow; then
+        info "检测到 GitHub Actions Release 工作流"
+        info "Release 将由 GitHub Actions 自动创建: https://github.com/$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo 'OWNER/REPO')/actions"
+    elif gh_is_available; then
+        local create_with_gh=""
+        read -r -p "使用 gh 创建 GitHub Release 并上传 dist/? (Y/n): " create_with_gh
+        create_with_gh=${create_with_gh:-y}
+        if [[ $create_with_gh =~ ^[Yy]$ ]]; then
+            check_gh_dependencies
+            create_github_release "$new_version"
         fi
     else
-        warn "gh 不可用或未登录，将跳过自动创建 GitHub Release（可先安装并运行 gh auth login）"
+        warn "gh 不可用或未登录，将跳过自动创建 GitHub Release"
         echo "手动创建 Release（可选）:"
         echo "  1) 在 GitHub 创建 Release: v${new_version}"
         echo "  2) 上传 dist/ 下的构建产物"
-        create_with_gh="n"
-    fi
-
-    if [[ $create_with_gh =~ ^[Yy]$ ]]; then
-        check_gh_dependencies
-        create_github_release "$new_version"
     fi
 
     echo ""
