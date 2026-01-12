@@ -88,7 +88,21 @@ git commit -m "feat: add weekly-report skill"
 
 ## 使用方式
 
-在任意 Git 项目目录中执行：
+### 前置条件
+
+需要先安装并启动 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)：
+
+```bash
+# 安装 Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# 在任意 Git 项目目录中启动
+claude
+```
+
+### 执行命令
+
+在 Claude Code 会话中输入：
 
 ```
 /weekly-report
