@@ -47,7 +47,7 @@ show_help() {
     echo "示例:"
     echo "  ./install.sh           # 正常安装"
     echo "  ./install.sh --force   # 强制覆盖安装"
-    echo "  curl -fsSL https://raw.githubusercontent.com/adonis/weekly-flow/main/install.sh | bash"
+    echo "  curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash"
     echo ""
     exit 0
 }

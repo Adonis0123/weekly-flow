@@ -47,11 +47,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/adonis/weekly-flow"
-Repository = "https://github.com/adonis/weekly-flow"
-Issues = "https://github.com/adonis/weekly-flow/issues"
-Documentation = "https://github.com/adonis/weekly-flow/blob/main/README.md"
-Changelog = "https://github.com/adonis/weekly-flow/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Adonis0123/weekly-flow"
+Repository = "https://github.com/Adonis0123/weekly-flow"
+Issues = "https://github.com/Adonis0123/weekly-flow/issues"
+Documentation = "https://github.com/Adonis0123/weekly-flow/blob/main/README.md"
+Changelog = "https://github.com/Adonis0123/weekly-flow/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]

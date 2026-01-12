@@ -21,26 +21,26 @@ Claude Code Skill - 自动读取 Git 提交记录生成周报
 **macOS / Linux:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/adonis/weekly-flow/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-irm https://raw.githubusercontent.com/adonis/weekly-flow/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.ps1 | iex
 ```
 
 ### 方式二：下载发布包安装
 
-从 [Releases](https://github.com/adonis/weekly-flow/releases) 页面下载最新版本。
+从 [Releases](https://github.com/Adonis0123/weekly-flow/releases) 页面下载最新版本。
 
 **macOS / Linux:**
 
 ```bash
 # 下载并解压
-curl -LO https://github.com/adonis/weekly-flow/releases/latest/download/weekly-flow-v1.0.0.tar.gz
-tar -xzf weekly-flow-v1.0.0.tar.gz
-cd weekly-flow-v1.0.0
+curl -LO https://github.com/Adonis0123/weekly-flow/releases/latest/download/weekly-flow-v1.0.1.tar.gz
+tar -xzf weekly-flow-v1.0.1.tar.gz
+cd weekly-flow-v1.0.1
 
 # 运行安装脚本
 ./install.sh
@@ -48,7 +48,7 @@ cd weekly-flow-v1.0.0
 
 **Windows:**
 
-1. 下载 `weekly-flow-v1.0.0.zip`
+1. 下载 `weekly-flow-v1.0.1.zip`
 2. 解压到任意目录
 3. 在 PowerShell 中运行：`.\install.ps1`
 
@@ -56,7 +56,7 @@ cd weekly-flow-v1.0.0
 
 ```bash
 # 克隆仓库
-git clone https://github.com/adonis/weekly-flow.git
+git clone https://github.com/Adonis0123/weekly-flow.git
 cd weekly-flow
 
 # 运行安装脚本
@@ -68,7 +68,7 @@ cd weekly-flow
 
 ```bash
 # 克隆仓库
-git clone https://github.com/adonis/weekly-flow.git
+git clone https://github.com/Adonis0123/weekly-flow.git
 
 # 复制到 Claude Code skills 目录
 cp -r weekly-flow ~/.claude/skills/weekly-report
@@ -264,7 +264,7 @@ weekly-flow/
 
 ```bash
 # 一键更新
-curl -fsSL https://raw.githubusercontent.com/adonis/weekly-flow/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Adonis0123/weekly-flow/main/install.sh | bash
 
 # 或使用 --force 参数强制覆盖
 ./install.sh --force

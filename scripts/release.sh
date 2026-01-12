@@ -44,8 +44,27 @@ gh_is_available() {
     command -v gh &> /dev/null && gh auth status &> /dev/null
 }
 
+has_release_workflow() {
+    [ -f ".github/workflows/release.yml" ] || [ -f ".github/workflows/release.yaml" ]
+}
+
 get_current_branch() {
     git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main"
+}
+
+ensure_clean_worktree_or_confirm() {
+    if [[ -n $(git status --porcelain) ]]; then
+        warn "检测到未提交的更改：发布 tag 默认不会包含这些改动"
+        git status --short >&2 || true
+        echo "" >&2
+        local cont=""
+        read -r -p "仍要继续发布? (y/N): " cont
+        cont=${cont:-n}
+        if [[ ! $cont =~ ^[Yy]$ ]]; then
+            info "已取消，请先提交或 stash 后再发布"
+            exit 0
+        fi
+    fi
 }
 
 # 获取当前版本
@@ -411,6 +430,8 @@ main() {
         exit 0
     fi
 
+    ensure_clean_worktree_or_confirm
+
     # 更新版本号
     update_version "$new_version"
 
@@ -424,8 +445,14 @@ main() {
     echo ""
     local create_with_gh="n"
     if gh_is_available; then
-        read -p "使用 gh 创建 GitHub Release 并上传 dist/? (Y/n): " create_with_gh
-        create_with_gh=${create_with_gh:-y}
+        if has_release_workflow; then
+            warn "检测到 GitHub Actions Release 工作流：push tag 后会自动创建 Release"
+            read -r -p "仍然在本地用 gh 创建 Release 并上传 dist/? (y/N): " create_with_gh
+            create_with_gh=${create_with_gh:-n}
+        else
+            read -r -p "使用 gh 创建 GitHub Release 并上传 dist/? (Y/n): " create_with_gh
+            create_with_gh=${create_with_gh:-y}
+        fi
     else
         warn "gh 不可用或未登录，将跳过自动创建 GitHub Release（可先安装并运行 gh auth login）"
         echo "手动创建 Release（可选）:"
