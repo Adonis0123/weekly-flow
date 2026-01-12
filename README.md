@@ -199,7 +199,7 @@ make build
 
 ### 一键发布
 
-需要先安装并登录 [GitHub CLI](https://cli.github.com/)：
+如果需要自动创建 GitHub Release 并上传构建产物，需要先安装并登录 [GitHub CLI](https://cli.github.com/)：
 
 ```bash
 # 安装 gh (macOS)

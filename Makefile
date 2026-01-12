@@ -10,7 +10,7 @@ help:
 	@echo ""
 	@echo "构建发布:"
 	@echo "  make build          构建发布包 (tar.gz + zip)"
-	@echo "  make publish        一键发布 (交互式选择版本)"
+	@echo "  make publish        一键发布 (选择版本 -> bump/tag/push，可选用 gh 创建 Release)"
 	@echo ""
 	@echo "开发:"
 	@echo "  make test           运行测试"

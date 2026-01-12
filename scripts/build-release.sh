@@ -4,6 +4,14 @@
 
 set -e
 
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+DIST_DIR="$PROJECT_DIR/dist"
+
+# 切换到项目目录
+cd "$PROJECT_DIR"
+
 # 版本号（从 pyproject.toml 读取）
 VERSION=$(grep 'version = ' pyproject.toml | head -1 | cut -d'"' -f2)
 
@@ -25,11 +33,6 @@ error() {
     echo -e "${RED}[ERROR]${NC} $1"
     exit 1
 }
-
-# 获取脚本所在目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR"
-DIST_DIR="$PROJECT_DIR/dist"
 
 # 清理旧的构建
 clean() {
@@ -78,7 +81,9 @@ build_release() {
 
     info "发布包创建完成:"
     echo "  - $DIST_DIR/${RELEASE_NAME}.tar.gz"
-    [ -f "$DIST_DIR/${RELEASE_NAME}.zip" ] && echo "  - $DIST_DIR/${RELEASE_NAME}.zip"
+    if [ -f "$DIST_DIR/${RELEASE_NAME}.zip" ]; then
+        echo "  - $DIST_DIR/${RELEASE_NAME}.zip"
+    fi
 }
 
 # 生成校验和
@@ -86,17 +91,20 @@ generate_checksums() {
     info "生成校验和..."
     cd "$DIST_DIR"
 
+    # 生成校验和，忽略不存在的文件
     if command -v sha256sum &> /dev/null; then
-        sha256sum *.tar.gz *.zip 2>/dev/null > checksums.txt || true
+        sha256sum *.tar.gz 2>/dev/null > checksums.txt || true
+        sha256sum *.zip 2>/dev/null >> checksums.txt || true
     elif command -v shasum &> /dev/null; then
-        shasum -a 256 *.tar.gz *.zip 2>/dev/null > checksums.txt || true
+        shasum -a 256 *.tar.gz 2>/dev/null > checksums.txt || true
+        shasum -a 256 *.zip 2>/dev/null >> checksums.txt || true
     else
         warn "无法生成校验和，sha256sum/shasum 未找到"
     fi
 
     cd "$PROJECT_DIR"
 
-    if [ -f "$DIST_DIR/checksums.txt" ]; then
+    if [ -s "$DIST_DIR/checksums.txt" ]; then
         info "校验和文件: $DIST_DIR/checksums.txt"
     fi
 }
@@ -109,19 +117,15 @@ show_release_notes() {
     echo "=========================================="
     echo ""
     echo "发布文件:"
-    ls -lh "$DIST_DIR"/*.{tar.gz,zip} 2>/dev/null || true
+    ls -lh "$DIST_DIR"/*.tar.gz 2>/dev/null || true
+    ls -lh "$DIST_DIR"/*.zip 2>/dev/null || true
     echo ""
     echo "下一步操作:"
+    echo "  运行 make publish 一键发布到 GitHub"
+    echo ""
+    echo "或手动操作:"
     echo "  1. 在 GitHub 创建 Release: v${VERSION}"
     echo "  2. 上传 dist/ 目录下的文件"
-    echo "  3. 更新 README 中的下载链接"
-    echo ""
-    echo "用户安装命令:"
-    echo "  # 一键安装（推荐）"
-    echo "  curl -fsSL https://raw.githubusercontent.com/adonis/weekly-flow/main/install.sh | bash"
-    echo ""
-    echo "  # 或下载发布包安装"
-    echo "  tar -xzf weekly-flow-v${VERSION}.tar.gz && cd weekly-flow-v${VERSION} && ./install.sh"
     echo ""
 }
 
