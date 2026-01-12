@@ -52,6 +52,27 @@ get_current_branch() {
     git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main"
 }
 
+ensure_git_lock_cleared() {
+    local lock_path
+    lock_path="$(git rev-parse --git-path index.lock 2>/dev/null || true)"
+    if [ -n "$lock_path" ] && [ -f "$lock_path" ]; then
+        warn "检测到 Git 锁文件: ${lock_path}"
+        echo "这通常表示：另一个 git 进程仍在运行，或上次 git 操作异常中断。" >&2
+        echo "请先确认没有 git/editor 进程占用该仓库后再删除锁文件。" >&2
+        echo "" >&2
+        ls -la "$lock_path" >&2 || true
+        echo "" >&2
+        local ans=""
+        read -r -p "是否尝试删除该锁文件并继续? (y/N): " ans
+        ans=${ans:-n}
+        if [[ $ans =~ ^[Yy]$ ]]; then
+            rm -f "$lock_path"
+        else
+            error "已取消：请处理锁文件后重试（例如：rm -f \"$lock_path\"）"
+        fi
+    fi
+}
+
 ensure_clean_worktree_or_confirm() {
     if [[ -n $(git status --porcelain) ]]; then
         warn "检测到未提交的更改：发布 tag 默认不会包含这些改动"
@@ -350,13 +371,28 @@ commit_tag_and_push() {
 
     info "提交版本更新并创建 tag..."
 
+    ensure_git_lock_cleared
+
     git add pyproject.toml install.sh
-    if ! git commit -m "chore: bump version to ${version}"; then
+    local commit_output=""
+    if ! commit_output="$(git commit -m "chore: bump version to ${version}" 2>&1)"; then
         echo ""
+        echo "$commit_output" >&2
+        echo "" >&2
+
+        if echo "$commit_output" | grep -q "index.lock"; then
+            error "提交失败：Git 锁文件未释放，请处理后重试"
+        fi
+        if echo "$commit_output" | grep -q "Please tell me who you are"; then
+            error "提交失败：请先配置 git 身份（git config --global user.name/user.email）后重试"
+        fi
+
         warn "提交失败（可能未配置 git user.name/user.email，或存在其他问题）"
         git status --short || true
         error "请先修复 git 提交问题后重试"
     fi
+
+    echo "$commit_output" >&2
 
     git tag -a "v${version}" -m "Release v${version}"
 
