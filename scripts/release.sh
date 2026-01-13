@@ -457,7 +457,21 @@ main() {
     echo ""
     if has_release_workflow; then
         info "检测到 GitHub Actions Release 工作流"
-        info "Release 将由 GitHub Actions 自动创建: https://github.com/$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo 'OWNER/REPO')/actions"
+
+        # 获取仓库全名（owner/repo）
+        local repo_name_with_owner=""
+        if gh_is_available; then
+            repo_name_with_owner=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null) || true
+        fi
+        if [ -z "$repo_name_with_owner" ]; then
+            # 从 git remote 获取仓库信息
+            repo_name_with_owner=$(git remote get-url origin 2>/dev/null | sed -E 's#.*github\.com[:/](.+)(\.git)?$#\1#' | sed 's/\.git$//')
+        fi
+        if [ -z "$repo_name_with_owner" ]; then
+            repo_name_with_owner="OWNER/REPO"
+        fi
+
+        info "Release 将由 GitHub Actions 自动创建: https://github.com/${repo_name_with_owner}/actions"
     elif gh_is_available; then
         local create_with_gh=""
         read -r -p "使用 gh 创建 GitHub Release 并上传 dist/? (Y/n): " create_with_gh
