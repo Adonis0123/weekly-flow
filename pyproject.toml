@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "weekly-flow"
-version = "1.0.3"
+version = "1.0.4"
 description = "Claude Code Skill - 自动读取 Git 提交记录生成周报，支持多仓库汇总和智能过滤"
 readme = "README.md"
 license.text = "MIT"
