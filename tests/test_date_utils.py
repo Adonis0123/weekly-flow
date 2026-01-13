@@ -10,6 +10,7 @@ from src.date_utils import (
     is_valid_week,
     get_week_number,
     format_date_range,
+    get_today_china,
 )
 
 
@@ -18,7 +19,7 @@ class TestGetWeekRange:
 
     def test_get_current_week_range(self):
         """测试获取本周的日期范围（周一到周日或今天）"""
-        today = date.today()
+        today = get_today_china()
         start, end = get_week_range(offset=0)
 
         # 开始日期应该是周一
@@ -47,7 +48,7 @@ class TestGetWeekRange:
 
     def test_week_range_does_not_exceed_today(self):
         """测试周范围的结束日期不能超过今天"""
-        today = date.today()
+        today = get_today_china()
         _, end = get_week_range(offset=0)
 
         # 如果今天不是周日，结束日期应该是今天
@@ -61,7 +62,7 @@ class TestValidateDateRange:
     def test_valid_date_range(self, monday_date, sunday_date):
         """测试有效的日期范围"""
         # 如果周日在未来，使用今天
-        today = date.today()
+        today = get_today_china()
         end_date = min(sunday_date, today)
 
         if monday_date <= today:
@@ -80,16 +81,16 @@ class TestValidateDateRange:
 
     def test_future_date_not_allowed(self):
         """测试不允许选择未来日期"""
-        future_date = date.today() + timedelta(days=30)
+        future_date = get_today_china() + timedelta(days=30)
 
-        is_valid, error = validate_date_range(date.today(), future_date)
+        is_valid, error = validate_date_range(get_today_china(), future_date)
         assert is_valid is False
         assert "不能选择未来日期" in error
 
     def test_start_date_must_be_monday(self):
         """测试开始日期必须是周一"""
         # 找一个周二
-        today = date.today()
+        today = get_today_china()
         days_until_tuesday = (1 - today.weekday()) % 7
         if days_until_tuesday == 0:
             days_until_tuesday = 7

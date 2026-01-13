@@ -3,8 +3,21 @@
 提供周报日期范围计算和验证功能。
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Tuple
+
+
+# 中国时区（东八区）
+CHINA_TZ = timezone(timedelta(hours=8))
+
+
+def get_today_china() -> date:
+    """获取中国时区（东八区）的今天日期
+
+    Returns:
+        中国时区的今天日期
+    """
+    return datetime.now(CHINA_TZ).date()
 
 
 def get_week_range(offset: int = 0) -> Tuple[date, date]:
@@ -17,7 +30,7 @@ def get_week_range(offset: int = 0) -> Tuple[date, date]:
         (start_date, end_date): 周一和周日的日期元组
         如果周日在未来，则结束日期为今天
     """
-    today = date.today()
+    today = get_today_china()
 
     # 计算本周一
     days_since_monday = today.weekday()
@@ -45,7 +58,7 @@ def validate_date_range(
     Returns:
         (is_valid, error_message): 验证结果和错误信息
     """
-    today = date.today()
+    today = get_today_china()
 
     # 检查开始日期是否晚于结束日期
     if start > end:

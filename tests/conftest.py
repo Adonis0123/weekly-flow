@@ -9,6 +9,8 @@ from typing import Any, Dict, List
 
 import pytest
 
+from src.date_utils import get_today_china
+
 
 @pytest.fixture
 def sample_commits() -> List[Dict[str, Any]]:
@@ -112,7 +114,7 @@ def mock_config_file(temp_dir, sample_config):
 @pytest.fixture
 def monday_date() -> date:
     """返回本周一的日期"""
-    today = date.today()
+    today = get_today_china()
     days_since_monday = today.weekday()
     return today - timedelta(days=days_since_monday)
 
