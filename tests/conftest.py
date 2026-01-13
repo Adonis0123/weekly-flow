@@ -20,7 +20,7 @@ def sample_commits() -> List[Dict[str, Any]]:
             "author": "adonis",
             "date": "2024-01-08",
             "branch": "main",
-            "project": "ai-video-collection",
+            "project": "project-a",
         },
         {
             "hash": "def456",
@@ -28,7 +28,7 @@ def sample_commits() -> List[Dict[str, Any]]:
             "author": "adonis",
             "date": "2024-01-09",
             "branch": "main",
-            "project": "ai-video-collection",
+            "project": "project-a",
         },
         {
             "hash": "ghi789",
@@ -36,7 +36,7 @@ def sample_commits() -> List[Dict[str, Any]]:
             "author": "adonis",
             "date": "2024-01-10",
             "branch": "develop",
-            "project": "ai-video-collection",
+            "project": "project-a",
         },
         {
             "hash": "jkl012",
@@ -44,7 +44,7 @@ def sample_commits() -> List[Dict[str, Any]]:
             "author": "adonis",
             "date": "2024-01-08",
             "branch": "main",
-            "project": "bandy-ai",
+            "project": "project-b",
         },
         {
             "hash": "mno345",
@@ -52,7 +52,7 @@ def sample_commits() -> List[Dict[str, Any]]:
             "author": "adonis",
             "date": "2024-01-09",
             "branch": "main",
-            "project": "bandy-ai",
+            "project": "project-b",
         },
     ]
 
@@ -63,12 +63,12 @@ def sample_config() -> Dict[str, Any]:
     return {
         "repos": [
             {
-                "name": "ai-video-collection",
-                "path": "/home/adonis/coding/ai-video-collection",
+                "name": "project-a",
+                "path": "/home/user/projects/project-a",
             },
             {
-                "name": "bandy-ai",
-                "path": "/home/adonis/coding/bandy-ai",
+                "name": "project-b",
+                "path": "/home/user/projects/project-b",
             },
         ],
         "default_author": "auto",

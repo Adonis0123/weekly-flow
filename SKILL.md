@@ -120,12 +120,12 @@ project-backend
 {
   "repos": [
     {
-      "name": "ai-video-collection",
-      "path": "/home/user/projects/ai-video-collection"
+      "name": "project-a",
+      "path": "/home/user/projects/project-a"
     },
     {
-      "name": "bandy-ai",
-      "path": "/home/user/projects/bandy-ai"
+      "name": "project-b",
+      "path": "/home/user/projects/project-b"
     }
   ],
   "default_author": "auto",

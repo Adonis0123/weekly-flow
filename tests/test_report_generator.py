@@ -17,18 +17,18 @@ class TestGenerateReport:
     def test_generate_report_single_project(self, sample_commits):
         """测试单项目周报生成"""
         # 只使用一个项目的提交
-        commits = [c for c in sample_commits if c["project"] == "ai-video-collection"]
+        commits = [c for c in sample_commits if c["project"] == "project-a"]
         report = generate_report(commits)
 
-        assert "ai-video-collection" in report
+        assert "project-a" in report
         assert "用户登录" in report or "登录" in report
 
     def test_generate_report_multi_project(self, sample_commits):
         """测试多项目周报生成"""
         report = generate_report(sample_commits)
 
-        assert "ai-video-collection" in report
-        assert "bandy-ai" in report
+        assert "project-a" in report
+        assert "project-b" in report
 
     def test_generate_report_with_supplements(self, sample_commits):
         """测试带补充内容的周报生成"""

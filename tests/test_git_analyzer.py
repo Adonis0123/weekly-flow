@@ -183,18 +183,18 @@ class TestGroupCommitsByProject:
     def test_group_commits_single_project(self, sample_commits):
         """测试单项目分组"""
         # 过滤只保留一个项目的提交
-        ai_commits = [c for c in sample_commits if c["project"] == "ai-video-collection"]
+        ai_commits = [c for c in sample_commits if c["project"] == "project-a"]
         grouped = group_commits_by_project(ai_commits)
 
-        assert "ai-video-collection" in grouped
-        assert len(grouped["ai-video-collection"]) == 3
+        assert "project-a" in grouped
+        assert len(grouped["project-a"]) == 3
 
     def test_group_commits_multiple_projects(self, sample_commits):
         """测试多项目分组"""
         grouped = group_commits_by_project(sample_commits)
 
-        assert "ai-video-collection" in grouped
-        assert "bandy-ai" in grouped
+        assert "project-a" in grouped
+        assert "project-b" in grouped
         assert len(grouped) == 2
 
     def test_group_commits_empty_list(self):
@@ -303,8 +303,8 @@ class TestMergeCommitsFromRepos:
     def test_merge_commits_from_multiple_repos(self, sample_commits):
         """测试合并多仓库提交记录"""
         commits_by_repo = {
-            "ai-video-collection": [c for c in sample_commits if c["project"] == "ai-video-collection"],
-            "bandy-ai": [c for c in sample_commits if c["project"] == "bandy-ai"],
+            "project-a": [c for c in sample_commits if c["project"] == "project-a"],
+            "project-b": [c for c in sample_commits if c["project"] == "project-b"],
         }
 
         merged = merge_commits_from_repos(commits_by_repo)
@@ -318,14 +318,14 @@ class TestMergeCommitsFromRepos:
     def test_merge_commits_preserves_project_info(self, sample_commits):
         """测试合并时保留项目信息"""
         commits_by_repo = {
-            "ai-video-collection": [sample_commits[0]],
-            "bandy-ai": [sample_commits[3]],
+            "project-a": [sample_commits[0]],
+            "project-b": [sample_commits[3]],
         }
 
         merged = merge_commits_from_repos(commits_by_repo)
 
-        ai_commits = [c for c in merged if c["project"] == "ai-video-collection"]
-        bandy_commits = [c for c in merged if c["project"] == "bandy-ai"]
+        project_a_commits = [c for c in merged if c["project"] == "project-a"]
+        project_b_commits = [c for c in merged if c["project"] == "project-b"]
 
-        assert len(ai_commits) == 1
-        assert len(bandy_commits) == 1
+        assert len(project_a_commits) == 1
+        assert len(project_b_commits) == 1

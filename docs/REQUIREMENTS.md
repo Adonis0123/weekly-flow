@@ -156,9 +156,9 @@ Skill 配置文件 (`SKILL.md`) 定义：
                           ▼
 ┌─────────────────────────────────────────────────────────┐
 │  2. 选择仓库 (多选)                                       │
-│     ☑ ai-video-collection                               │
-│     ☑ bandy-ai                                          │
-│     ☐ other-project                                     │
+│     ☑ project-a                                         │
+│     ☑ project-b                                         │
+│     ☐ project-c                                         │
 │     [+ 添加当前目录]                                      │
 └─────────────────────────────────────────────────────────┘
                           │
@@ -203,14 +203,14 @@ Skill 配置文件 (`SKILL.md`) 定义：
 ### 5.2 示例输出
 
 ```markdown
-ai-video-collection
+project-a
   - turbopack 升级改造
   - Agent 开发流程跟进
     - 方案合理性优化
     - 问题边界定义
   - 油猴脚本国际化优化
 
-bandy-ai
+project-b
   - 自定义类型化消息渲染
   - 断线重连流程梳理
 

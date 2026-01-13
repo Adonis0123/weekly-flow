@@ -98,12 +98,12 @@ class TestAddRepo:
         config = sample_config.copy()
         config["repos"] = sample_config["repos"].copy()
 
-        updated = add_repo(config, "ai-video-collection", "/new/path")
+        updated = add_repo(config, "project-a", "/new/path")
 
         # 数量不变
         assert len(updated["repos"]) == 2
         # 路径已更新
-        repo = next(r for r in updated["repos"] if r["name"] == "ai-video-collection")
+        repo = next(r for r in updated["repos"] if r["name"] == "project-a")
         assert repo["path"] == "/new/path"
 
 
@@ -115,10 +115,10 @@ class TestRemoveRepo:
         config = sample_config.copy()
         config["repos"] = sample_config["repos"].copy()
 
-        updated = remove_repo(config, "bandy-ai")
+        updated = remove_repo(config, "project-b")
 
         assert len(updated["repos"]) == 1
-        assert not any(r["name"] == "bandy-ai" for r in updated["repos"])
+        assert not any(r["name"] == "project-b" for r in updated["repos"])
 
     def test_remove_non_existing_repo(self, sample_config):
         """测试移除不存在的仓库"""
@@ -139,8 +139,8 @@ class TestGetRepos:
         repos = get_repos(sample_config)
 
         assert len(repos) == 2
-        assert any(r["name"] == "ai-video-collection" for r in repos)
-        assert any(r["name"] == "bandy-ai" for r in repos)
+        assert any(r["name"] == "project-a" for r in repos)
+        assert any(r["name"] == "project-b" for r in repos)
 
     def test_get_repos_empty_config(self):
         """测试空配置"""
