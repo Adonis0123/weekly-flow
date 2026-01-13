@@ -200,6 +200,16 @@ show_version_menu() {
     echo "" >&2
 }
 
+# 检查 gum 是否可用
+gum_is_available() {
+    command -v gum &> /dev/null
+}
+
+# 检查是否有可用的 TTY（通过 /dev/tty 检测，避免子 shell 问题）
+tty_is_available() {
+    [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]
+}
+
 choose_menu_index() {
     local prompt=$1
     shift
@@ -211,87 +221,45 @@ choose_menu_index() {
         return 0
     fi
 
-    if [ ! -t 0 ] || [ ! -t 1 ]; then
+    # 方案 1: 使用 gum（推荐，支持方向键导航）
+    if gum_is_available && tty_is_available; then
         echo "$prompt" >&2
+        local selected=""
+        selected=$(gum choose --cursor="> " --cursor.foreground="212" "${options[@]}" < /dev/tty 2>/dev/tty) || {
+            echo "-1"
+            return 0
+        }
+
+        # 查找选中项的索引
         local i
         for i in "${!options[@]}"; do
-            printf "  %s\n" "${options[$i]}" >&2
+            if [ "${options[$i]}" = "$selected" ]; then
+                echo "$i"
+                return 0
+            fi
         done
-        local choice=""
-        read -r -p "选择 [1-${option_count}]: " choice
-        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$option_count" ]; then
-            echo $((choice - 1))
-        else
-            echo "-1"
-        fi
+        echo "-1"
         return 0
     fi
 
-    local selected=0
-    local esc=$'\033'
-
-    _wf_restore_cursor() {
-        tput cnorm 2>/dev/null || true
-        printf "\033[0m" >&2
-    }
-
-    _wf_restore_cursor
-    tput civis 2>/dev/null || true
-    trap '_wf_restore_cursor; return 130' INT TERM
-
+    # 方案 2: 回退到简单数字选择
     echo "$prompt" >&2
-
-    _wf_render_menu() {
-        local i
-        for i in "${!options[@]}"; do
-            printf "\033[2K\r" >&2
-            if [ "$i" -eq "$selected" ]; then
-                printf "\033[7m> %s\033[0m\n" "${options[$i]}" >&2
-            else
-                printf "  %s\n" "${options[$i]}" >&2
-            fi
-        done
-    }
-
-    _wf_render_menu
-
-    while true; do
-        local key=""
-        IFS= read -rsn1 key
-
-        if [[ "$key" == "$esc" ]]; then
-            local rest=""
-            IFS= read -rsn2 -t 0.01 rest || rest=""
-            case "$rest" in
-                "[A") selected=$(( (selected - 1 + option_count) % option_count )) ;;
-                "[B") selected=$(( (selected + 1) % option_count )) ;;
-            esac
-        elif [[ "$key" == "" || "$key" == $'\n' || "$key" == $'\r' ]]; then
-            _wf_restore_cursor
-            trap - INT TERM
-            printf "\n" >&2
-            echo "$selected"
-            return 0
-        elif [[ "$key" =~ ^[1-9]$ ]]; then
-            local idx=$((key - 1))
-            if [ "$idx" -ge 0 ] && [ "$idx" -lt "$option_count" ]; then
-                _wf_restore_cursor
-                trap - INT TERM
-                printf "\n" >&2
-                echo "$idx"
-                return 0
-            fi
-        elif [[ "$key" == "q" || "$key" == "Q" ]]; then
-            _wf_restore_cursor
-            trap - INT TERM
-            printf "\n" >&2
-            echo "-1"
-            return 0
-        fi
-
-        printf "\033[%dA" "$option_count" >&2
-        _wf_render_menu
+    local i
+    for i in "${!options[@]}"; do
+        printf "  %s\n" "${options[$i]}" >&2
     done
+    local choice=""
+    if tty_is_available; then
+        read -r -p "选择 [1-${option_count}]: " choice < /dev/tty
+    else
+        read -r -p "选择 [1-${option_count}]: " choice
+    fi
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$option_count" ]; then
+        echo $((choice - 1))
+    else
+        echo "-1"
+    fi
+    return 0
 }
 
 # 获取用户选择
@@ -318,7 +286,7 @@ get_version_choice() {
         )
 
         local idx
-        idx="$(choose_menu_index "使用 ↑/↓ 选择，回车确认（或直接按 1-5 / q）" "${options[@]}")"
+        idx="$(choose_menu_index "请选择（↑/↓ 选择，回车确认）：" "${options[@]}")"
 
         case $idx in
             0)
@@ -343,12 +311,14 @@ get_version_choice() {
                 fi
                 ;;
             4)
-                info "取消发布"
-                exit 0
+                # 返回空字符串表示取消
+                echo ""
+                return 0
                 ;;
             -1)
-                info "取消发布"
-                exit 0
+                # 返回空字符串表示取消
+                echo ""
+                return 0
                 ;;
             *)
                 warn "无效选项，请重新选择"
@@ -455,6 +425,12 @@ main() {
 
     local current_version=$(get_current_version)
     local new_version=$(get_version_choice "$current_version")
+
+    # 检查是否取消了发布
+    if [ -z "$new_version" ]; then
+        info "取消发布"
+        exit 0
+    fi
 
     echo ""
     echo -e "即将发布: ${YELLOW}v${current_version}${NC} -> ${GREEN}v${new_version}${NC}"

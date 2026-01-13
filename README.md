@@ -184,6 +184,11 @@ project-backend
 - Git 2.0+
 - Claude Code CLI
 
+**开发/发布依赖（可选）:**
+
+- [GitHub CLI (gh)](https://cli.github.com/) - 用于创建 GitHub Release
+- [gum](https://github.com/charmbracelet/gum) - 用于交互式发布菜单
+
 ## 开发
 
 ### 安装开发依赖
@@ -219,7 +224,7 @@ make ship
 
 **前置要求：**
 
-确保已安装并登录 [GitHub CLI](https://cli.github.com/)：
+1. 安装并登录 [GitHub CLI](https://cli.github.com/)：
 
 ```bash
 # 安装 gh (macOS)
@@ -228,6 +233,24 @@ brew install gh
 # 登录
 gh auth login
 ```
+
+2. 安装 [gum](https://github.com/charmbracelet/gum)（用于交互式菜单）：
+
+```bash
+# macOS
+brew install gum
+
+# Linux (Debian/Ubuntu)
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+sudo apt update && sudo apt install gum
+
+# Windows (Scoop)
+scoop install charm-gum
+```
+
+> 注：如果未安装 gum，发布工具会自动回退到数字选择模式。
 
 **执行流程：**
 
