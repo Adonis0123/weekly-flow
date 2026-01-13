@@ -6,6 +6,8 @@
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Tuple
 
+from dateutil.relativedelta import relativedelta
+
 
 # 中国时区（东八区）
 CHINA_TZ = timezone(timedelta(hours=8))
@@ -155,3 +157,116 @@ def get_available_weeks(count: int = 5) -> list:
         })
 
     return weeks
+
+
+# ==================== 时间段报告相关函数 ====================
+
+
+def get_half_year_range() -> Tuple[date, date]:
+    """获取前半年的日期范围
+
+    从当前时间往前推 6 个自然月。
+
+    Returns:
+        (start_date, end_date): 从 6 个月前到今天的日期元组
+    """
+    today = get_today_china()
+    # 使用 relativedelta 计算 6 个月前的日期
+    start_date = today - relativedelta(months=6)
+    return start_date, today
+
+
+def validate_custom_date_range(start: date, end: date) -> Tuple[bool, Optional[str]]:
+    """验证自定义日期范围（无周一限制）
+
+    用于时间段报告的日期验证，允许任意日期作为起始日。
+
+    Args:
+        start: 开始日期
+        end: 结束日期
+
+    Returns:
+        (is_valid, error_message): 验证结果和错误信息
+    """
+    today = get_today_china()
+
+    # 检查开始日期是否晚于结束日期
+    if start > end:
+        return False, "开始日期不能晚于结束日期"
+
+    # 检查是否选择了未来日期
+    if end > today:
+        return False, "不能选择未来日期"
+
+    return True, None
+
+
+def format_date_for_filename(start: date, end: date) -> str:
+    """生成用于文件名的日期范围字符串
+
+    Args:
+        start: 开始日期
+        end: 结束日期
+
+    Returns:
+        格式为 "YYYY-MM-DD_to_YYYY-MM-DD"
+    """
+    return f"{start.isoformat()}_to_{end.isoformat()}"
+
+
+def format_period_title(start: date, end: date) -> str:
+    """生成时间段报告的标题
+
+    Args:
+        start: 开始日期
+        end: 结束日期
+
+    Returns:
+        格式为 "YYYY-MM-DD ~ YYYY-MM-DD"
+    """
+    return format_date_range(start, end)
+
+
+def get_available_time_ranges() -> list:
+    """获取可选择的时间范围列表（包含周报和时间段报告选项）
+
+    Returns:
+        时间范围列表，每项包含 type, start, end, label, display
+        type 可选值: "week" 或 "period"
+    """
+    ranges = []
+
+    # 添加本周和上周（保持原有逻辑）
+    weeks = get_available_weeks(count=2)
+    for week in weeks:
+        ranges.append({
+            "type": "week",
+            "offset": week["offset"],
+            "start": week["start"],
+            "end": week["end"],
+            "label": week["label"],
+            "display": week["display"],
+        })
+
+    # 添加前半年选项
+    half_year_start, half_year_end = get_half_year_range()
+    ranges.append({
+        "type": "period",
+        "period_name": "前半年",
+        "start": half_year_start,
+        "end": half_year_end,
+        "label": "前半年",
+        "display": f"前半年 ({format_date_range(half_year_start, half_year_end)})",
+    })
+
+    # 添加自定义时间段选项
+    ranges.append({
+        "type": "period",
+        "period_name": "custom",
+        "start": None,  # 用户输入
+        "end": None,    # 用户输入（今天）
+        "label": "自定义时间段",
+        "display": "自定义时间段（输入起始日期，截止到今天）",
+    })
+
+    return ranges

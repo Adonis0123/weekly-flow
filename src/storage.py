@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -333,6 +334,155 @@ def delete_report(
         是否成功删除
     """
     path = get_report_path(year, week, base_dir)
+
+    if not path.exists():
+        return False
+
+    path.unlink()
+    return True
+
+
+# ==================== 时间段报告相关函数 ====================
+
+
+def get_period_report_path(
+    start_date: date,
+    end_date: date,
+    base_dir: Optional[Path] = None,
+) -> Path:
+    """获取时间段报告文件路径
+
+    Args:
+        start_date: 开始日期
+        end_date: 结束日期
+        base_dir: 存储基础目录
+
+    Returns:
+        时间段报告文件路径，格式为 periods/YYYY-MM-DD_to_YYYY-MM-DD.md
+    """
+    storage_dir = get_storage_dir(base_dir)
+    filename = f"{start_date.isoformat()}_to_{end_date.isoformat()}.md"
+    return storage_dir / "periods" / filename
+
+
+def save_period_report(
+    content: str,
+    start_date: date,
+    end_date: date,
+    base_dir: Optional[Path] = None,
+) -> Path:
+    """保存时间段报告
+
+    Args:
+        content: 报告内容
+        start_date: 开始日期
+        end_date: 结束日期
+        base_dir: 存储基础目录
+
+    Returns:
+        保存的文件路径
+    """
+    path = get_period_report_path(start_date, end_date, base_dir)
+
+    # 确保目录存在
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # 同一时间段多次生成时进行内容合并
+    if path.exists():
+        existing = path.read_text(encoding="utf-8")
+        merged = merge_report_content(existing, content)
+        path.write_text(merged, encoding="utf-8")
+    else:
+        path.write_text(content if content.endswith("\n") else content + "\n", encoding="utf-8")
+
+    return path
+
+
+def list_period_reports(base_dir: Optional[Path] = None) -> List[Dict[str, Any]]:
+    """列出所有时间段报告
+
+    Args:
+        base_dir: 存储基础目录
+
+    Returns:
+        时间段报告列表，每项包含 start_date, end_date, path, filename
+    """
+    storage_dir = get_storage_dir(base_dir)
+    periods_dir = storage_dir / "periods"
+
+    if not periods_dir.exists():
+        return []
+
+    reports = []
+
+    # 遍历时间段报告文件
+    for report_file in sorted(periods_dir.glob("*_to_*.md"), reverse=True):
+        # 从文件名提取日期范围
+        stem = report_file.stem  # e.g., "2025-07-13_to_2026-01-13"
+        parts = stem.split("_to_")
+        if len(parts) != 2:
+            continue
+
+        try:
+            start_date = date.fromisoformat(parts[0])
+            end_date = date.fromisoformat(parts[1])
+        except ValueError:
+            continue
+
+        reports.append({
+            "start_date": start_date,
+            "end_date": end_date,
+            "path": report_file,
+            "filename": report_file.name,
+        })
+
+    return reports
+
+
+def get_period_report(
+    start_date: date,
+    end_date: date,
+    base_dir: Optional[Path] = None,
+) -> Optional[Dict[str, Any]]:
+    """按日期范围获取时间段报告
+
+    Args:
+        start_date: 开始日期
+        end_date: 结束日期
+        base_dir: 存储基础目录
+
+    Returns:
+        报告信息字典，不存在时返回 None
+    """
+    path = get_period_report_path(start_date, end_date, base_dir)
+
+    if not path.exists():
+        return None
+
+    return {
+        "start_date": start_date,
+        "end_date": end_date,
+        "path": path,
+        "content": path.read_text(encoding="utf-8"),
+    }
+
+
+def delete_period_report(
+    start_date: date,
+    end_date: date,
+    base_dir: Optional[Path] = None,
+) -> bool:
+    """删除时间段报告
+
+    Args:
+        start_date: 开始日期
+        end_date: 结束日期
+        base_dir: 存储基础目录
+
+    Returns:
+        是否成功删除
+    """
+    path = get_period_report_path(start_date, end_date, base_dir)
 
     if not path.exists():
         return False

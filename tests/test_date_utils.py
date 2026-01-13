@@ -11,6 +11,11 @@ from src.date_utils import (
     get_week_number,
     format_date_range,
     get_today_china,
+    get_half_year_range,
+    validate_custom_date_range,
+    format_date_for_filename,
+    format_period_title,
+    get_available_time_ranges,
 )
 
 
@@ -89,18 +94,12 @@ class TestValidateDateRange:
 
     def test_start_date_must_be_monday(self):
         """测试开始日期必须是周一"""
-        # 找一个周二
-        today = get_today_china()
-        days_until_tuesday = (1 - today.weekday()) % 7
-        if days_until_tuesday == 0:
-            days_until_tuesday = 7
-        tuesday = today - timedelta(days=7) + timedelta(days=days_until_tuesday)
+        # 使用过去的固定日期来测试
+        # 2024年1月9日是周二
+        tuesday = date(2024, 1, 9)
+        sunday = date(2024, 1, 14)
 
-        # 确保是过去的周二
-        while tuesday > today:
-            tuesday -= timedelta(days=7)
-
-        is_valid, error = validate_date_range(tuesday, tuesday + timedelta(days=5))
+        is_valid, error = validate_date_range(tuesday, sunday)
         assert is_valid is False
         assert "开始日期必须是周一" in error
 
@@ -180,3 +179,142 @@ class TestFormatDateRange:
         formatted = format_date_range(start, end)
         assert "2024-01-29" in formatted
         assert "2024-02-04" in formatted
+
+
+class TestGetHalfYearRange:
+    """测试获取前半年日期范围"""
+
+    def test_get_half_year_range(self):
+        """测试获取前半年日期范围"""
+        today = get_today_china()
+        start, end = get_half_year_range()
+
+        # 结束日期应该是今天
+        assert end == today
+
+        # 开始日期应该是约 6 个月前
+        diff_days = (end - start).days
+        assert 180 <= diff_days <= 184, "前半年应该是约 180-184 天"
+
+    def test_half_year_range_not_in_future(self):
+        """测试前半年范围不能包含未来"""
+        _, end = get_half_year_range()
+        today = get_today_china()
+
+        assert end <= today
+
+
+class TestValidateCustomDateRange:
+    """测试自定义日期范围验证"""
+
+    def test_valid_custom_date_range(self):
+        """测试有效的自定义日期范围"""
+        start = date(2024, 1, 15)  # 周一
+        end = date(2024, 3, 15)    # 周五
+
+        is_valid, error = validate_custom_date_range(start, end)
+        assert is_valid is True
+        assert error is None
+
+    def test_valid_non_monday_start(self):
+        """测试任意日期作为起始日期都有效"""
+        # 周三作为起始日期
+        start = date(2024, 1, 10)
+        end = date(2024, 1, 15)
+
+        is_valid, error = validate_custom_date_range(start, end)
+        assert is_valid is True, "任意日期都可以作为起始日期"
+
+    def test_start_date_after_end_date(self):
+        """测试开始日期晚于结束日期"""
+        start = date(2024, 1, 15)
+        end = date(2024, 1, 10)
+
+        is_valid, error = validate_custom_date_range(start, end)
+        assert is_valid is False
+        assert "开始日期不能晚于结束日期" in error
+
+    def test_future_date_not_allowed(self):
+        """测试不允许选择未来日期"""
+        future_date = get_today_china() + timedelta(days=30)
+
+        is_valid, error = validate_custom_date_range(get_today_china(), future_date)
+        assert is_valid is False
+        assert "不能选择未来日期" in error
+
+
+class TestFormatDateForFilename:
+    """测试文件名格式化"""
+
+    def test_format_date_for_filename(self):
+        """测试生成用于文件名的日期范围字符串"""
+        start = date(2025, 7, 13)
+        end = date(2026, 1, 13)
+
+        filename = format_date_for_filename(start, end)
+        assert filename == "2025-07-13_to_2026-01-13"
+
+    def test_format_single_digit_dates(self):
+        """测试单个数字的日期格式化"""
+        start = date(2024, 1, 5)
+        end = date(2024, 2, 3)
+
+        filename = format_date_for_filename(start, end)
+        assert filename == "2024-01-05_to_2024-02-03"
+
+
+class TestFormatPeriodTitle:
+    """测试时间段标题格式化"""
+
+    def test_format_period_title(self):
+        """测试生成时间段报告的标题"""
+        start = date(2025, 7, 13)
+        end = date(2026, 1, 13)
+
+        title = format_period_title(start, end)
+        assert title == "2025-07-13 ~ 2026-01-13"
+
+
+class TestGetAvailableTimeRanges:
+    """测试获取可选择的时间范围列表"""
+
+    def test_get_available_time_ranges_contains_weeks(self):
+        """测试时间范围列表包含周选项"""
+        ranges = get_available_time_ranges()
+
+        # 应该有本周和上周
+        week_ranges = [r for r in ranges if r["type"] == "week"]
+        assert len(week_ranges) >= 2
+
+    def test_get_available_time_ranges_contains_half_year(self):
+        """测试时间范围列表包含前半年选项"""
+        ranges = get_available_time_ranges()
+
+        half_year = [r for r in ranges if r.get("period_name") == "前半年"]
+        assert len(half_year) == 1
+
+        # 验证前半年选项有具体的日期
+        assert half_year[0]["start"] is not None
+        assert half_year[0]["end"] is not None
+
+    def test_get_available_time_ranges_contains_custom(self):
+        """测试时间范围列表包含自定义时间段选项"""
+        ranges = get_available_time_ranges()
+
+        custom = [r for r in ranges if r.get("period_name") == "custom"]
+        assert len(custom) == 1
+
+        # 自定义选项的日期为 None（需要用户输入）
+        assert custom[0]["start"] is None
+        assert custom[0]["end"] is None
+
+    def test_time_ranges_have_required_fields(self):
+        """测试时间范围选项包含必要字段"""
+        ranges = get_available_time_ranges()
+
+        for range_item in ranges:
+            assert "type" in range_item
+            assert "start" in range_item
+            assert "end" in range_item
+            assert "label" in range_item
+            assert "display" in range_item

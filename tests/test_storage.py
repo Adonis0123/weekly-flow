@@ -12,6 +12,11 @@ from src.storage import (
     list_reports,
     get_report_by_week,
     update_index,
+    get_period_report_path,
+    save_period_report,
+    list_period_reports,
+    get_period_report,
+    delete_period_report,
 )
 
 
@@ -178,3 +183,140 @@ class TestUpdateIndex:
 
         assert "2024" in content
         assert "week-01" in content or "第 1 周" in content
+
+
+class TestGetPeriodReportPath:
+    """测试获取时间段报告路径"""
+
+    def test_get_period_report_path(self, temp_dir):
+        """测试获取时间段报告路径"""
+        start_date = date(2025, 7, 13)
+        end_date = date(2026, 1, 13)
+
+        path = get_period_report_path(start_date, end_date, base_dir=temp_dir)
+
+        assert "periods" in str(path)
+        assert "2025-07-13_to_2026-01-13.md" in str(path)
+
+    def test_get_period_report_path_different_dates(self, temp_dir):
+        """测试不同日期的路径"""
+        path_1 = get_period_report_path(date(2024, 1, 1), date(2024, 6, 30), base_dir=temp_dir)
+        path_2 = get_period_report_path(date(2024, 7, 1), date(2024, 12, 31), base_dir=temp_dir)
+
+        assert "2024-01-01_to_2024-06-30.md" in str(path_1)
+        assert "2024-07-01_to_2024-12-31.md" in str(path_2)
+
+
+class TestSavePeriodReport:
+    """测试保存时间段报告"""
+
+    def test_save_period_report_new(self, temp_dir):
+        """测试保存新时间段报告"""
+        content = "# 工作总结\n\n- 项目 A\n  - 功能开发"
+        start_date = date(2025, 7, 13)
+        end_date = date(2026, 1, 13)
+
+        path = save_period_report(content, start_date, end_date, base_dir=temp_dir)
+
+        assert path.exists()
+        assert path.read_text() == content + "\n"
+
+    def test_save_period_report_creates_periods_directory(self, temp_dir):
+        """测试自动创建 periods 目录"""
+        content = "# 工作总结"
+        start_date = date(2025, 7, 13)
+        end_date = date(2026, 1, 13)
+
+        save_period_report(content, start_date, end_date, base_dir=temp_dir)
+
+        periods_dir = temp_dir / "periods"
+        assert periods_dir.exists()
+        assert periods_dir.is_dir()
+
+    def test_save_period_report_merges_existing(self, temp_dir):
+        """测试同一时间段多次生成时合并内容"""
+        start_date = date(2025, 7, 13)
+        end_date = date(2026, 1, 13)
+
+        save_period_report("my-project\n  - 旧条目\n", start_date, end_date, base_dir=temp_dir)
+        save_period_report("my-project\n  - 新条目\n", start_date, end_date, base_dir=temp_dir)
+
+        path = get_period_report_path(start_date, end_date, base_dir=temp_dir)
+        content = path.read_text()
+        assert "my-project" in content
+        assert "旧条目" in content
+        assert "新条目" in content
+
+
+class TestListPeriodReports:
+    """测试列出时间段报告"""
+
+    def test_list_period_reports_empty(self, temp_dir):
+        """测试空目录"""
+        reports = list_period_reports(base_dir=temp_dir)
+
+        assert reports == []
+
+    def test_list_period_reports_single(self, temp_dir):
+        """测试单个时间段报告"""
+        save_period_report("report 1", date(2025, 7, 13), date(2026, 1, 13), base_dir=temp_dir)
+
+        reports = list_period_reports(base_dir=temp_dir)
+
+        assert len(reports) == 1
+        assert reports[0]["start_date"] == date(2025, 7, 13)
+        assert reports[0]["end_date"] == date(2026, 1, 13)
+
+    def test_list_period_reports_multiple(self, temp_dir):
+        """测试多个时间段报告"""
+        save_period_report("report 1", date(2024, 1, 1), date(2024, 6, 30), base_dir=temp_dir)
+        save_period_report("report 2", date(2024, 7, 1), date(2024, 12, 31), base_dir=temp_dir)
+
+        reports = list_period_reports(base_dir=temp_dir)
+
+        assert len(reports) == 2
+
+
+class TestGetPeriodReport:
+    """测试按日期范围获取时间段报告"""
+
+    def test_get_existing_period_report(self, temp_dir):
+        """测试获取已存在的时间段报告"""
+        content = "# 工作总结内容"
+        start_date = date(2025, 7, 13)
+        end_date = date(2026, 1, 13)
+        save_period_report(content, start_date, end_date, base_dir=temp_dir)
+
+        report = get_period_report(start_date, end_date, base_dir=temp_dir)
+
+        assert report is not None
+        assert report["content"] == content + "\n"
+        assert report["start_date"] == start_date
+        assert report["end_date"] == end_date
+
+    def test_get_non_existing_period_report(self, temp_dir):
+        """测试获取不存在的时间段报告"""
+        report = get_period_report(date(2099, 1, 1), date(2099, 12, 31), base_dir=temp_dir)
+
+        assert report is None
+
+
+class TestDeletePeriodReport:
+    """测试删除时间段报告"""
+
+    def test_delete_existing_period_report(self, temp_dir):
+        """测试删除已存在的时间段报告"""
+        start_date = date(2025, 7, 13)
+        end_date = date(2026, 1, 13)
+        save_period_report("content", start_date, end_date, base_dir=temp_dir)
+
+        result = delete_period_report(start_date, end_date, base_dir=temp_dir)
+
+        assert result is True
+        assert get_period_report(start_date, end_date, base_dir=temp_dir) is None
+
+    def test_delete_non_existing_period_report(self, temp_dir):
+        """测试删除不存在的时间段报告"""
+        result = delete_period_report(date(2099, 1, 1), date(2099, 12, 31), base_dir=temp_dir)
+
+        assert result is False
