@@ -209,16 +209,15 @@ make test
 make coverage
 ```
 
-### 构建发布包
+### 一键发布（推荐）
+
+一个命令完成所有发布步骤（构建 + 发布）：
 
 ```bash
-# 构建 tar.gz 和 zip 包
-make build
-
-# 发布文件位于 dist/ 目录
+make ship
 ```
 
-### 一键发布
+**前置要求：**
 
 确保已安装并登录 [GitHub CLI](https://cli.github.com/)：
 
@@ -230,13 +229,9 @@ brew install gh
 gh auth login
 ```
 
-执行一键发布：
+**执行流程：**
 
-```bash
-make publish
-```
-
-会显示交互式菜单：
+运行 `make ship` 后会显示交互式菜单：
 
 ```
 当前版本: v1.0.0
@@ -252,10 +247,22 @@ make publish
 
 选择后自动完成：
 
-1. 更新版本号
-2. 提交并创建 Git tag
-3. 构建发布包
-4. 推送 tag（GitHub Actions 会自动创建 Release）
+1. 更新版本号（pyproject.toml, install.sh）
+2. 构建发布包（tar.gz, zip, checksums）
+3. 提交并创建 Git tag
+4. 推送到 GitHub
+5. 创建 GitHub Release 并上传构建产物
+
+### 单独构建（不发布）
+
+如果只想构建发布包而不发布：
+
+```bash
+# 仅构建 tar.gz 和 zip 包
+make build
+
+# 构建文件位于 dist/ 目录
+```
 
 ### 项目结构
 

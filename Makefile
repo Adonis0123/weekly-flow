@@ -1,4 +1,4 @@
-.PHONY: install install-dev install-skill test coverage clean lint format help build release publish
+.PHONY: install install-dev install-skill test coverage clean lint format help build release publish ship
 
 # 默认目标
 help:
@@ -9,8 +9,9 @@ help:
 	@echo "  make install-dev    安装开发依赖"
 	@echo ""
 	@echo "构建发布:"
-	@echo "  make build          构建发布包 (tar.gz + zip)"
-	@echo "  make publish        一键发布 (选择版本 -> bump/tag/push，可选用 gh 创建 Release)"
+	@echo "  make ship           一键发布 (推荐) - 构建 + 发布到 GitHub"
+	@echo "  make build          仅构建发布包 (tar.gz + zip)"
+	@echo "  make publish        同 make ship (完整发布流程)"
 	@echo ""
 	@echo "开发:"
 	@echo "  make test           运行测试"
@@ -49,6 +50,9 @@ release: build
 publish:
 	@chmod +x scripts/release.sh
 	@./scripts/release.sh
+
+# 一键发布的快捷方式
+ship: publish
 
 # 运行测试
 test:
